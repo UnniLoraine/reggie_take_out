@@ -3,9 +3,11 @@ package com.jx.reggie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 
 @Slf4j  //可以直接 写  log.
 @SpringBootApplication
+@ServletComponentScan//扫描web过滤器
 public class ReggieApplication {
     public static void main(String[] args) {
         SpringApplication.run(ReggieApplication.class,args);
