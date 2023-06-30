@@ -15,6 +15,7 @@ import com.jx.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,9 +47,12 @@ public class DishController {
 
     /**
      * 新增菜品
-     *
+     * CachePut:将方法放回值放入注解
+     *    value：缓存的名称，每个缓存名称下面可以有多个key
+     *    key： 缓存的key
      * @return
      */
+    //@CachePut(value = "",key = "#result.id")
     @PostMapping
     public R<String> save(@RequestBody DishDto dishDto) {
         log.info(dishDto.toString());
