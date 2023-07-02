@@ -14,6 +14,10 @@ import com.jx.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +30,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequestMapping("/setmeal")
 public class SetmealController {
+
+    /*@Autowired
+    private CacheManager cacheManager;*/
 
     @Autowired
     private SetmealService setmealService;
@@ -43,6 +50,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("套餐信息:{}", setmealDto);
 
@@ -103,12 +111,14 @@ public class SetmealController {
 
     /**
      * 删除套餐
+     *
      * @param ids
-     * @return
+     * @return allEntries = true删除setmealCache里面的所有缓存数据
      */
     @DeleteMapping
-    public R<String>delete(@RequestParam List<Long>ids){  //@RequestParam：将请求参数绑定到你控制器的方法参数上（是springmvc中接收普通参数的注解）
-        log.info("ids:{}",ids);
+    @CacheEvict(value = "setmealCache", allEntries = true)
+    public R<String> delete(@RequestParam List<Long> ids) {  //@RequestParam：将请求参数绑定到你控制器的方法参数上（是springmvc中接收普通参数的注解）
+        log.info("ids:{}", ids);
         setmealService.removeWithDish(ids);
         return R.success("删除成功！");
     }
@@ -116,14 +126,16 @@ public class SetmealController {
 
     /**
      * 根据条件查询套餐数据
+     *
      * @param setmeal
      * @return
      */
     @GetMapping("/list")
-    public R<List<Setmeal>>list(Setmeal setmeal){
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId+'_'+#setmeal.status")
+    public R<List<Setmeal>> list(Setmeal setmeal) {
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
-        queryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
+        queryWrapper.eq(setmeal.getCategoryId() != null, Setmeal::getCategoryId, setmeal.getCategoryId());
+        queryWrapper.eq(setmeal.getStatus() != null, Setmeal::getStatus, setmeal.getStatus());
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
 
         List<Setmeal> list = setmealService.list(queryWrapper);
